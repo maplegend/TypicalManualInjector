@@ -9,15 +9,15 @@
 
 class Injector
 {
+private:
+	HANDLE hProcess;
+	HANDLE hThread;
+	PVOID buffer, image, mem;
 
 public:
 	int Inject(wchar_t* filename, wchar_t* process);
 	~Injector();
 	void PrintInjectedMethod();
 
-private:
-	HANDLE hProcess;
-	HANDLE hThread;
-	PVOID buffer, image, mem;
 };
 

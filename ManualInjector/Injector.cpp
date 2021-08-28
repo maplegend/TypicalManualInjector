@@ -129,7 +129,7 @@ void AdjustPrivileges() {
 }
 
 PVOID OpenDLLFile(wchar_t* file_name) {
-    printf("\nOpening the DLL.\n");
+    printf("Opening the DLL.\n");
     HANDLE hFile = CreateFile(file_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); // Open the DLL
 
     if (hFile == INVALID_HANDLE_VALUE)
@@ -285,7 +285,7 @@ int Injector::Inject(wchar_t* filename, wchar_t* process)
         return -1;
     }
 
-    printf("\nCopying headers into target process.\n");
+    printf("Copying headers into target process.\n");
 
     if (!WriteProcessMemory(hProcess, image, buffer, pINH->OptionalHeader.SizeOfHeaders, NULL))
     {
@@ -297,7 +297,7 @@ int Injector::Inject(wchar_t* filename, wchar_t* process)
 
     // Copy the DLL to target process
 
-    printf("\nCopying sections to target process.\n");
+    printf("Copying sections to target process.\n");
 
     for (int i = 0; i < pINH->FileHeader.NumberOfSections; i++)
     {
@@ -308,7 +308,7 @@ int Injector::Inject(wchar_t* filename, wchar_t* process)
         }
     }
 
-    printf("\nAllocating memory for the loader code.\n");
+    printf("Allocating memory for the loader code.\n");
     mem = VirtualAllocEx(hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE); // Allocate memory for the loader code
 
     if (!mem)
@@ -322,25 +322,25 @@ int Injector::Inject(wchar_t* filename, wchar_t* process)
         return -1;
     }
 
-    printf("\nLoader code allocated at %#x\n", mem);
+    printf("Loader code allocated at %#x\n", mem);
     
     MANUAL_INJECT ManualInject;
     memset(&ManualInject,0,sizeof(MANUAL_INJECT));
-    printf("\nImage base located at %#x\n", image);
+    printf("Image base located at %#x\n", image);
     ManualInject.ImageBase = image;
     ManualInject.NtHeaders = (PIMAGE_NT_HEADERS)((LPBYTE)image + pIDH->e_lfanew);
     ManualInject.BaseRelocation = (PIMAGE_BASE_RELOCATION)((LPBYTE)image + pINH->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
     ManualInject.ImportDirectory = (PIMAGE_IMPORT_DESCRIPTOR)((LPBYTE)image + pINH->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
     ManualInject.fnLoadLibraryA = LoadLibraryA;
     ManualInject.fnGetProcAddress = GetProcAddress;
-    printf("\nWriting loader code to target process.\n");
-    printf("\nInject param size %#x\n", sizeof(MANUAL_INJECT));
-    printf("\nInject func start addr %#x\n", (PVOID)((PMANUAL_INJECT)mem + 1));
+    printf("Writing loader code to target process.\n");
+    printf("Inject param size %#x\n", sizeof(MANUAL_INJECT));
+    printf("Inject func start addr %#x\n", (PVOID)((PMANUAL_INJECT)mem + 1));
     
     WriteProcessMemory(hProcess, mem, &ManualInject, sizeof(MANUAL_INJECT), NULL); // Write the loader information to target process
     WriteProcessMemory(hProcess, (PVOID)((PMANUAL_INJECT)mem + 1), LoadDll, (DWORD)LoadDllEnd - (DWORD)LoadDll, NULL); // Write the loader code to target process
 
-    printf("\nExecuting loader code at %#x.\n", (LPTHREAD_START_ROUTINE)((PMANUAL_INJECT)mem + 1));
+    printf("Executing loader code at %#x.\n", (LPTHREAD_START_ROUTINE)((PMANUAL_INJECT)mem + 1));
     hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)((PMANUAL_INJECT)mem + 1), mem, 0, NULL); // Create a remote thread to execute the loader code
 
     if (!hThread)
